@@ -1,0 +1,141 @@
+#include "monty.h"
+
+/* does nothing? */
+void nop(stack_t **s, unsigned int n)
+{
+        (void) s;
+        (void) n;
+}
+/* adds top 2 elements */
+void add(stack_t **s, unsigned int n)
+{
+        (void) s;
+        (void) n;
+}
+/* swaps top 2 elements */
+void swap(stack_t **s, unsigned int n)
+{
+        (void) s;
+        (void) n;
+}
+/* prints top of stack */
+void pint(stack_t **s, unsigned int n)
+{
+        (void) s;
+        (void) n;
+}
+/* prints all values on stack from top */
+void pall(stack_t **s, unsigned int n)
+{
+        stack_t *temp = *s;
+        (void) n;
+
+        while (temp)
+        {
+                printf("%d\n", temp->n);
+                temp = temp->next;
+        }
+}
+/* removes top element */
+void pop(stack_t **s, unsigned int n)
+{
+        (void) s;
+        (void) n;
+}
+/* pushes element onto stack */
+void push(stack_t **s, unsigned int n, int value)
+{
+        stack_t *new;
+        (void) n;
+
+        if (*s == NULL)
+        {
+                new = malloc(sizeof(stack_t));
+                new->n = value;
+                *s = new;
+        }
+        else
+        {
+                new = malloc(sizeof(stack_t));
+                new->n = value;
+                new->next = *s;
+                (*s)->prev = new;
+                *s = new;
+        }
+}
+/* get function */
+void (*get_function(char *s)) (stack_t **s, unsigned int n)
+{
+        instruction_t funcs[] = {
+                {"pall", pall},
+                {"pint", pint},
+                {"pop", pop},
+                {"swap", swap},
+                {"add", add},
+                {"nop", nop},
+                {NULL, NULL}
+        };
+
+        int i = 0;
+
+        while (funcs[i].opcode)
+        {
+                if (strcmp(s, funcs[i].opcode) == 0)
+                        return (funcs[i].f);
+                i++;
+        }
+        return (NULL);
+}
+/* parse at newline and space */
+char *parse(char *s, char *buffer[])
+{
+        char delim[] = " \n";
+        char *token;
+        int i = 0;
+
+        token = strtok(s, delim);
+
+        while (token)
+        {
+                buffer[i] = token;
+                token = strtok(NULL, delim);
+                i++;
+        }
+        if (buffer[0] == NULL)
+                return (NULL);
+        return (NULL);
+}
+/* entry */
+int main(int argc, char *argv[])
+{
+        int fd, i, line = 1, value;
+        char temp[1000], *split[1000];
+        stack_t **stack;
+
+        if (argc != 2)
+        {
+                printf("USAGE: monty file\n");
+                exit(EXIT_FAILURE);
+        }
+
+        fd = open(argv[1], O_RDONLY);
+        read(fd, temp, 1000);
+
+        parse(temp, split);
+
+        stack = malloc(sizeof(stack_t *));
+        *stack = NULL;
+
+        for (i = 0; split[i]; i++)
+        {
+                if (strcmp(split[i], "push") == 0)
+                {
+                        value = atoi(split[i + 1]);
+                        push(stack, line, value);
+                }
+                if (get_function(split[i]))
+                        get_function(split[i])(stack, line);
+                line++;
+        }
+        return (0);
+}
